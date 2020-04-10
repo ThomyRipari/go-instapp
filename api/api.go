@@ -1,21 +1,22 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/ThomyRipari/go-instapp/handlers"
-	"github.com/ThomyRipari/go-instapp/middlewares"
-	"net/http"
 	"log"
+	"net/http"
+
+	userHandlers "github.com/ThomyRipari/go-instapp/handlers"
+	"github.com/ThomyRipari/go-instapp/middlewares"
+	"github.com/ThomyRipari/go-instapp/services"
+	"github.com/gorilla/mux"
 )
 
 func InitServer() {
 	router := createRouter()
 
 	server := &http.Server{
-		Addr: "127.0.0.1:8000",
+		Handler: router,
+		Addr:    "127.0.0.1:8000",
 	}
-
-	http.Handle("/", router)
 
 	log.Fatal(server.ListenAndServe())
 }
@@ -23,9 +24,16 @@ func InitServer() {
 func createRouter() *mux.Router {
 	r := mux.NewRouter()
 
-	sub_router := r.PathPrefix("/api/v1").Subrouter()
+	client, err := services.ConnectMongoDB()
 
-	sub_router.HandleFunc("/register", middlewares.Logging(userHandlers.Register)).Methods("POST")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("Succesfully conected to MongoDB Cloud Service")
+
+	subRouter := r.PathPrefix("/api/v1").Subrouter()
+
+	subRouter.HandleFunc("/register", middlewares.Logging(userHandlers.Register(client))).Methods("POST")
 
 	return r
 }
