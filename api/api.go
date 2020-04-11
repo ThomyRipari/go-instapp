@@ -34,6 +34,9 @@ func createRouter() *mux.Router {
 	subRouter := r.PathPrefix("/api/v1").Subrouter()
 
 	subRouter.HandleFunc("/register", middlewares.Logging(userHandlers.Register(client))).Methods("POST")
+	subRouter.HandleFunc("/login", middlewares.Logging(userHandlers.Login(client))).Methods("POST")
+	subRouter.HandleFunc("/refresh_token", middlewares.Logging(middlewares.Auth(userHandlers.RefreshToken))).Methods("GET")
+	subRouter.HandleFunc("/social", middlewares.Logging(middlewares.Auth(userHandlers.Social(client)))).Methods("GET")
 
 	return r
 }
